@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <dirent.h>
+#include <time.h>
 
 /*
   Function Declarations for builtin shell commands:
@@ -23,20 +25,28 @@
 int lsh_cd(char **args);
 int lsh_help(char **args);
 int lsh_exit(char **args);
-
+int lsh_pwd(char **args);
+int lsh_ls(char **args);
+int lsh_date(char **args);
 /*
   List of builtin commands, followed by their corresponding functions.
  */
 char *builtin_str[] = {
   "cd",
   "help",
-  "exit"
+  "exit",
+  "pwd",
+  "ls",
+  "date"
 };
 
 int (*builtin_func[]) (char **) = {
   &lsh_cd,
   &lsh_help,
-  &lsh_exit
+  &lsh_exit,
+  &lsh_pwd,
+  &lsh_ls,
+  &lsh_date
 };
 
 int lsh_num_builtins() {
@@ -46,6 +56,69 @@ int lsh_num_builtins() {
 /*
   Builtin function implementations.
 */
+// Builtin command: print current date and time, no arguments
+
+int lsh_date(char **args){
+	if (args[1]==NULL){
+		time_t t = time(NULL);
+		struct tm tm = *localtime(&t);
+		printf("Current time: %d-%02d-%02d %02d:%02d:02%d\n",tm.tm_year + 1900, 
+		tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+		return 1;
+	}
+	else{
+		printf("No arguments neccessary!\n");
+		return 0;
+	}
+
+}
+
+
+
+
+// Builtin command: list files of directory
+
+int lsh_ls(char **args) 
+{ 
+	struct dirent **namelist; 
+	int n; 
+	if (args[1]==NULL) 
+	{ 
+		n=scandir("./",&namelist,NULL,alphasort); 
+	} 
+	else 
+	{ 
+		n = scandir(args[1], &namelist, NULL, alphasort); 
+	} 
+	if(n < 0) 
+	{ 
+		return 1; 
+	} 
+	else 
+	{ 
+		printf("Files:\n");
+		while (n--) 
+		{ 
+			printf("%s\n",namelist[n]->d_name); 
+			free(namelist[n]); 
+		} 
+		free(namelist); 
+	}  
+	return 1;
+}
+	
+
+
+// Builtin command: print working directory
+
+int lsh_pwd(char **args){
+	char *run_dir = (char*)malloc(1024);
+	if (getcwd(run_dir,1024)!=NULL){
+		fprintf(stdout,"Current working directory is: %s\n",run_dir);
+		}
+	return 1;
+}
+
 
 /**
    @brief Builtin command: change directory.
