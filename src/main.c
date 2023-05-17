@@ -68,7 +68,7 @@ int lsh_date(char **args){
 	}
 	else{
 		printf("No arguments neccessary!\n");
-		return 0;
+		return 1;
 	}
 
 }
